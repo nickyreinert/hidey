@@ -75,7 +75,7 @@
 </head>
 <body>
 
-    <div id="helpIcon" data-tooltip="This tool allows you to encode a secret message within the text. Enter your main text and the secret message you wish to encode. Click 'Encode' to embed the secret within the main text invisibly. Use 'Decode' to extract and reveal.">&#x003F;</div>
+    <div id="helpIcon" data-tooltip="This tool allows you to encode a secret message within the text. Enter your main text and the secret message you wish to encode. Click 'Encode' to embed the secret within the main text invisibly. Use 'Decode' to extract and reveal. The input text remains unchanged, the secret message will be decoded using hidden UTF-8 chars.">&#x003F;</div>
     
     <label for="text">Text:</label>
     <textarea id="text" placeholder="Enter some text here..."></textarea>
@@ -167,6 +167,8 @@
         }
         addLoremIpsum();
     </script>
+
+    <footer><a href="https://github.com/nickyreinert/hidey">github.com/nickyreinert/hidey</a></footer>
 
 </body>
 </html>
