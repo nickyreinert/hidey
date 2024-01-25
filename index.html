@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Encoding Tool</title>
+    <style>
+        body {
+            font-family: 'Courier New', 'Times New Roman', Times, serif;
+            font-size: 1.5em;
+            text-align: center;
+            margin-top: 100px; /* Center vertically */
+            background-color: #00FFFF; /* Bright cyan background */
+        }
+        textarea, button, input {
+            display: block; /* Stack elements vertically */
+            margin: 10px auto; /* Center elements horizontally */
+            font-size: 1em;
+            font-family: 'Courier New', 'Times New Roman', Times, serif;
+        }
+        button {
+            cursor: pointer;
+            background-color: #FFD700; /* Gold background for the button */
+            border: 1px solid #008000; /* Green border */
+            color: #0000FF; /* Blue text */
+            padding: 5px 15px;
+        }
+        input { 
+            width: 75%;
+            height: 2em;
+            border: 2px solid #FF00FF; /* Magenta border for textarea */
+            background-color: #FFFFFF; /* White background for textarea */
+        }
+        textarea {
+            width: 75%;
+            height: 200px;
+            border: 2px solid #FF00FF; /* Magenta border for textarea */
+            background-color: #FFFFFF; /* White background for textarea */
+        }
+        #helpIcon {
+        position: fixed;
+        bottom: 10px; /* Positioned at the bottom */
+        left: 10px;
+        cursor: help;
+        background-color: #ff00ff; /* Funky background color */
+        color: #ffffff; /* White text color for contrast */
+        padding: 5px;
+        border-radius: 50%; /* Circular shape */
+        font-size: 20px; /* Larger font size for visibility */
+    }
+
+    #helpIcon::after {
+        content: attr(data-tooltip);
+        visibility: hidden;
+        opacity: 0;
+        width: 300px;
+        background-color: #ff00ff; /* Matching funky background color */
+        color: #fff; /* Text color */
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 10px;
+        position: fixed;
+        z-index: 1;
+        bottom: 0px; /* Positioned above the icon */
+        left: 50%;
+        margin: 20% auto;
+        transform: translateX(-50%);
+        transition: opacity 0.3s;
+    }
+
+    #helpIcon:hover::after {
+        visibility: visible;
+        opacity: 1;
+    }
+    </style>
+</head>
+<body>
+
+    <div id="helpIcon" data-tooltip="This tool allows you to encode a secret message within the text. Enter your main text and the secret message you wish to encode. Click 'Encode' to embed the secret within the main text invisibly. Use 'Decode' to extract and reveal.">&#x003F;</div>
+    
+    <label for="text">Text:</label>
+    <textarea id="text" placeholder="Enter some text here..."></textarea>
+    
+    <label for="secret">Secret:</label>
+    <input type="text" id="secret" placeholder="Enter your secret message here...">
+    
+    <button onclick="encode()">Encode</button>
+    
+    <label for="hiddenSecret">Encoded Secret:</label>
+    <textarea id="hiddenSecret" readonly placeholder="..."></textarea>
+    
+    <button onclick="decode()">Decode</button>
+    
+    <label for="revealedSecret">Revealed Secret:</label>
+    <input type="text" id="revealedSecret" placeholder="">
+        
+    <script>
+
+        function encode() {
+            var userInput = document.getElementById('text').value;
+            var secret = document.getElementById('secret').value;
+
+            // Encode each character of 'secret' into its ASCII value and then into a binary string
+            // Then replace '0' with ZERO WIDTH SPACE and '1' with ZERO WIDTH NON-JOINER
+            var encodedSecret = Array.from(secret).map(function(char) {
+                return char.charCodeAt(0).toString(2).padStart(8, '0') // Convert to 8-bit binary, ensuring leading zeros
+                            .replace(/0/g, '\u200B') // Replace '0' with ZERO WIDTH SPACE
+                            .replace(/1/g, '\u200C'); // Replace '1' with ZERO WIDTH NON-JOINER
+            });
+
+            var modifiedUserInput = '';
+            var secretIndex = 0;
+
+            // Iterate over each character of userInput
+            for (var i = 0; i < userInput.length; i++) {
+                modifiedUserInput += userInput[i]; // Add the current userInput character
+                // Check if there is an encoded secret character to insert
+                if (secretIndex < encodedSecret.length) {
+                    modifiedUserInput += encodedSecret[secretIndex++]; // Add the next encoded secret character
+                }
+            }
+
+            // If there are remaining encoded secret characters, append them at the end
+            while (secretIndex < encodedSecret.length) {
+                modifiedUserInput += encodedSecret[secretIndex++];
+            }
+
+            document.getElementById('hiddenSecret').value = modifiedUserInput;
+
+        }
+
+        function decode() {
+
+            var encodedInput = document.getElementById('hiddenSecret').value;
+            
+            // Initialize an empty string for the decoded message
+            var decodedMessage = '';
+
+            // Use a regular expression to find all sequences of ZERO WIDTH SPACE and ZERO WIDTH NON-JOINER
+            var regExp = /[\u200B\u200C]+/g;
+            var match;
+            var lastIndex = 0;
+
+            // Iterate over all matches of encoded sequences in the input
+            while ((match = regExp.exec(encodedInput)) !== null) {
+                // Decode each matched sequence
+                var binaryStr = match[0].replace(/\u200B/g, '0').replace(/\u200C/g, '1');
+                var charCode = parseInt(binaryStr, 2);
+                if (!isNaN(charCode)) {
+                    decodedMessage += String.fromCharCode(charCode);
+                }
+                lastIndex = match.index + match[0].length;
+            }
+
+            // Display the decoded message
+            document.getElementById('revealedSecret').value = decodedMessage;
+
+        }
+
+
+        document.getElementById('secret').addEventListener('input', encode);
+        document.getElementById('text').addEventListener('input', encode);
+
+        function addLoremIpsum() {
+            document.querySelector('#text').value = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            document.querySelector('#secret').value = "Secret Message"
+            
+        }
+        addLoremIpsum();
+    </script>
+
+</body>
+</html>
